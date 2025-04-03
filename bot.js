@@ -36,5 +36,16 @@ bot.on('message', (msg) => {
 
         promemoria[chatId][nome] = dataOra;
         bot.sendMessage(chatId, `Attività "${nome}" aggiunta.`);
-    }
+    } else if (testo === '/list') {
+        const attivita = Object.entries(promemoria[chatId] || {});
+        if (attivita.length === 0) {
+            bot.sendMessage(chatId, "Nessuna attività trovata.");
+        } else {
+            let messaggio = "Le tue attività:\n";
+            for (const coppia of attivita) {
+                messaggio += `${coppia[1]}: ${coppia[0]}\n`;
+            }
+            bot.sendMessage(chatId, messaggio);
+        }
+    } 
 });
