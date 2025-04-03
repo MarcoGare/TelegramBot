@@ -58,5 +58,10 @@ bot.on('message', (msg) => {
             });
             bot.sendMessage(chatId, messaggio);
         }
+    } else if (testo in (promemoria[chatId] || {})) {
+        delete promemoria[chatId][testo];
+        bot.sendMessage(chatId, `Attività "${testo}" rimossa.`);
+    } else {
+        bot.sendMessage(chatId, `Attività "${testo}" non trovata.`);
     }
 });
