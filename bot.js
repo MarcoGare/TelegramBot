@@ -47,5 +47,16 @@ bot.on('message', (msg) => {
             }
             bot.sendMessage(chatId, messaggio);
         }
-    } 
+    } else if (testo === '/delete') {
+        const nomiAttivita = Object.keys(promemoria[chatId] || {});
+        if (nomiAttivita.length === 0) {
+            bot.sendMessage(chatId, "Nessuna attività da eliminare.");
+        } else {
+            let messaggio = "Scrivi il nome dell'attività da eliminare:\n";
+            nomiAttivita.forEach(nome => {
+                messaggio += `- ${nome}\n`;
+            });
+            bot.sendMessage(chatId, messaggio);
+        }
+    }
 });
