@@ -4,7 +4,17 @@ const conf = JSON.parse(fs.readFileSync('conf.json'));
 const token = conf.key;
 const bot = new TelegramBot(token, { polling: true });
 
-let promemoria = {};
+const file_promemo = 'promemoria.json';
+
+function caricaPromemoria() {
+    try {
+        return JSON.parse(fs.readFileSync(file_promemo));
+    } catch (err) {
+        return {};
+    }
+}
+
+let promemoria = caricaPromemoria();
 
 bot.on('message', (msg) => {
     const chatId = msg.chat.id;
