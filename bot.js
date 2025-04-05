@@ -2,8 +2,9 @@ const fs = require('fs');
 const TelegramBot = require('node-telegram-bot-api');
 const conf = JSON.parse(fs.readFileSync('conf.json'));
 const token = conf.key;
-const bot = new TelegramBot(token, { polling: true });
 
+
+const bot = new TelegramBot(token, { polling: true });
 const file_promemo = 'promemoria.json';
 
 function caricaPromemoria() {
@@ -14,7 +15,12 @@ function caricaPromemoria() {
     }
 }
 
+function salvaPromemoria() {
+    fs.writeFileSync(file_promemo, JSON.stringify(promemoria, null, 2));
+}
+
 let promemoria = caricaPromemoria();
+let attesaEliminazione = {};
 
 bot.on('message', (msg) => {
     const chatId = msg.chat.id;
@@ -36,15 +42,18 @@ bot.on('message', (msg) => {
             bot.sendMessage(chatId, "Formato non valido. Usa: data, ora, nome");
             return;
         }
-        
+
         const dataOra = parti[0] + " " + parti[1];
-        const nome = parti.slice(2).join(" ");
+        const nome = " " + parti.slice(2).join(" ");
+
 
         if (!promemoria[chatId]) {
             promemoria[chatId] = {};
         }
 
         promemoria[chatId][nome] = dataOra;
+        salvaPromemoria();
+
         bot.sendMessage(chatId, `Attività "${nome}" aggiunta.`);
     } else if (testo === '/list') {
         const attivita = Object.entries(promemoria[chatId] || {});
@@ -67,10 +76,17 @@ bot.on('message', (msg) => {
                 messaggio += `- ${nome}\n`;
             });
             bot.sendMessage(chatId, messaggio);
+            attesaEliminazione[chatId] = true;
         }
-    } else if (testo in (promemoria[chatId] || {})) {
-        delete promemoria[chatId][testo];
-        bot.sendMessage(chatId, `Attività "${testo}" rimossa.`);
+    } else if (attesaEliminazione[chatId]) {
+        if (" " + testo in (promemoria[chatId] || {})) {
+            delete promemoria[chatId][" " + testo];
+            salvaPromemoria();
+            bot.sendMessage(chatId, `Attività "${testo}" rimossa.`);
+        } else {
+            bot.sendMessage(chatId, `Attività "${testo}" non trovata.`);
+        }
+        delete attesaEliminazione[chatId];
     } else {
         bot.sendMessage(chatId, `Attività "${testo}" non trovata.`);
     }
