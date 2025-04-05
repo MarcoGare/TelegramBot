@@ -2,8 +2,6 @@ const fs = require('fs');
 const TelegramBot = require('node-telegram-bot-api');
 const conf = JSON.parse(fs.readFileSync('conf.json'));
 const token = conf.key;
-
-
 const bot = new TelegramBot(token, { polling: true });
 const file_promemo = 'promemoria.json';
 
@@ -46,7 +44,6 @@ bot.on('message', (msg) => {
         const dataOra = parti[0] + " " + parti[1];
         const nome = " " + parti.slice(2).join(" ");
 
-
         if (!promemoria[chatId]) {
             promemoria[chatId] = {};
         }
@@ -79,15 +76,33 @@ bot.on('message', (msg) => {
             attesaEliminazione[chatId] = true;
         }
     } else if (attesaEliminazione[chatId]) {
-        if (" " + testo in (promemoria[chatId] || {})) {
-            delete promemoria[chatId][" " + testo];
+        const lista = Object.keys(promemoria[chatId] || {});
+        let trovata = null;
+    
+        for (let nome of lista) {
+            const nomePulito = nome.toLowerCase();
+            const testoPulito = (" " + testo).toLowerCase(); 
+    
+            if (nomePulito === testoPulito) {
+                trovata = nome;
+                break;
+            }
+    
+            
+            if (nomePulito.startsWith("  ") && nomePulito.slice(1) === testoPulito) {
+                trovata = nome;
+                break;
+            }
+        }
+    
+        if (trovata) {
+            delete promemoria[chatId][trovata];
             salvaPromemoria();
-            bot.sendMessage(chatId, `Attività "${testo}" rimossa.`);
+            bot.sendMessage(chatId, `Attività "${trovata}" rimossa.`);
         } else {
             bot.sendMessage(chatId, `Attività "${testo}" non trovata.`);
         }
+    
         delete attesaEliminazione[chatId];
-    } else {
-        bot.sendMessage(chatId, `Attività "${testo}" non trovata.`);
     }
 });
